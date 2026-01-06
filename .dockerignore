@@ -1,0 +1,16 @@
+.git
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/.venv
+**/venv
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+**/.DS_Store
+**/bioemu_runs
+**/tmp
+**/.cache
+**/huggingface

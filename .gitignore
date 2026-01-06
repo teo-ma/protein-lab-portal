@@ -1,0 +1,34 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenv
+.venv/
+venv/
+
+# Logs
+*.log
+
+# Local secrets
+.env
+.env.*
+
+# Project-specific
+memo.txt
+
+# Data / outputs (keep repo clean)
+bioemu_runs/
+*.xtc

@@ -1,0 +1,19 @@
+[Unit]
+Description=Dayhoff Gradio Web Demo
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=azureuser
+WorkingDirectory=/mnt/data/dayhoff_demo
+Environment=HF_HOME=/mnt/data/azureuser_cache/huggingface
+Environment=BIOEMU_COLABFOLD_DIR=/mnt/data/bioemu_colabfold
+Environment=TMPDIR=/mnt/data/tmp
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/mnt/data/dayhoff_demo/.venv/bin/python /mnt/data/dayhoff_demo/app.py --host 0.0.0.0 --port 7860
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+# Minimal runtime deps for microsoft/Dayhoff-3b-GR-HM-c demo
+# Install torch separately to match the VM CUDA driver (see README).
+transformers>=4.45.0
+accelerate>=0.33.0
+safetensors>=0.4.3
+huggingface_hub>=0.24.0
+gradio>=4.0.0
+# BioEmu is Linux-only; keep this installable on macOS dev machines.
+bioemu; platform_system == "Linux"
+MDAnalysis; platform_system == "Linux"
