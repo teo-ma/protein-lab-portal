@@ -529,21 +529,54 @@ def bioemu_visualize_output(
 
 
 def build_ui(default_model: str) -> gr.Blocks:
-    with gr.Blocks() as demo:
-        gr.Markdown("# Dayhoff-3b-GR-HM-c demo\nGenerate protein sequences using Transformers.")
+    here_dir = Path(__file__).resolve().parent
+    repo_root = here_dir.parent
+    local_images_dir = here_dir / "images"
+    root_images_dir = repo_root / "images"
+    banner_candidates = [root_images_dir / "banner.png", local_images_dir / "banner.png"]
+
+    def _png_data_uri(path: Path) -> str:
+        try:
+            data_b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+        except Exception:
+            return ""
+        return f"data:image/png;base64,{data_b64}"
+
+    def _first_existing_path(paths: list[Path]) -> Path | None:
+        for path in paths:
+            if path.is_file():
+                return path
+        return None
+
+    with gr.Blocks(title="蛋白质链实验室") as demo:
+        banner_path = _first_existing_path(banner_candidates)
+        if banner_path is not None:
+            banner_uri = _png_data_uri(banner_path)
+            if banner_uri:
+                gr.Markdown(
+                    f'<img src="{banner_uri}" alt="banner" style="width:100%; height:auto;" />'
+                )
+
+        gr.Markdown(
+            "<h1 style=\"text-align:center; margin: 0.2rem 0 0.8rem 0;\">蛋白质链实验室</h1>\n"
+            "Dayhoff + BioEmu 组合用于构建闭环的蛋白质设计与验证工作流："
+            "**生成序列 → 结构采样/验证 → 可视化预览**。\n\n"
+            "- Dayhoff：快速探索序列空间，生成候选蛋白序列\n"
+            "- BioEmu：对候选序列进行结构集合（ensemble）采样与筛选（可选）"
+        )
 
         model_id = gr.Textbox(
-            label="Model",
+            label="模型（Hugging Face ID 或本地路径）",
             value=default_model,
         )
         prompt = gr.Textbox(
-            label="Prompt (optional)",
-            placeholder="Leave empty to use BOS token",
+            label="提示词（可选）",
+            placeholder="留空则使用 BOS token",
             lines=2,
         )
 
         gr.Examples(
-            label="Test prompts",
+            label="示例提示词",
             examples=[
                 [""],
                 ["M"],
@@ -555,45 +588,51 @@ def build_ui(default_model: str) -> gr.Blocks:
         )
 
         with gr.Row():
-            seed = gr.Number(label="Seed", value=0, precision=0)
-            max_length = gr.Slider(label="Max length", minimum=16, maximum=512, value=50, step=1)
-            num_samples = gr.Slider(label="Samples", minimum=1, maximum=8, value=1, step=1)
+            seed = gr.Number(label="随机种子（Seed）", value=0, precision=0)
+            max_length = gr.Slider(label="最大长度（Max length）", minimum=16, maximum=512, value=50, step=1)
+            num_samples = gr.Slider(label="生成条数（Samples）", minimum=1, maximum=8, value=1, step=1)
 
         with gr.Row():
-            temperature = gr.Slider(label="Temperature", minimum=0.1, maximum=2.0, value=1.0, step=0.05)
+            temperature = gr.Slider(label="温度（Temperature）", minimum=0.1, maximum=2.0, value=1.0, step=0.05)
             top_p = gr.Slider(label="Top-p", minimum=0.1, maximum=1.0, value=1.0, step=0.05)
 
         with gr.Row():
-            bos_btn = gr.Button("Show BOS token")
-            bos_token = gr.Textbox(label="BOS token (repr)", interactive=False)
+            bos_btn = gr.Button("查看 BOS token")
+            bos_token = gr.Textbox(label="BOS token（repr）", interactive=False)
             bos_token_id = gr.Textbox(label="BOS token id", interactive=False)
 
-        run_btn = gr.Button("Generate")
-        output = gr.Textbox(label="Output", lines=10)
+        run_btn = gr.Button("生成蛋白序列")
+        output = gr.Textbox(label="生成结果", lines=10)
 
-        gr.Markdown("## BioEmu validation (optional)\nSamples structure ensembles for the generated sequences.")
+        gr.Markdown(
+            "## BioEmu 验证（可选）\n"
+            "对生成序列进行结构集合（ensemble）采样，并输出可用于可视化/下载的结果文件。"
+        )
 
         with gr.Row():
-            bioemu_num_samples = gr.Slider(label="BioEmu num_samples", minimum=1, maximum=50, value=5, step=1)
-            bioemu_model_name = gr.Textbox(label="BioEmu model_name", value="bioemu-v1.1")
-            filter_samples = gr.Checkbox(label="Filter unphysical samples", value=True)
+            bioemu_num_samples = gr.Slider(label="BioEmu 采样数（num_samples）", minimum=1, maximum=50, value=5, step=1)
+            bioemu_model_name = gr.Textbox(label="BioEmu 模型名（model_name）", value="bioemu-v1.1")
+            filter_samples = gr.Checkbox(label="过滤非物理样本（Filter unphysical samples）", value=True)
 
         output_base_dir = gr.Textbox(
-            label="BioEmu output base dir",
+            label="BioEmu 输出根目录（output base dir）",
             value=os.environ.get("BIOEMU_OUTPUT_BASE_DIR", "/tmp/bioemu_runs"),
         )
-        bioemu_btn = gr.Button("Validate with BioEmu")
-        bioemu_output = gr.Textbox(label="BioEmu validation log", lines=12)
+        bioemu_btn = gr.Button("用 BioEmu 验证")
+        bioemu_output = gr.Textbox(label="BioEmu 验证日志", lines=12)
 
-        gr.Markdown("## BioEmu visualization (web)\nPaste an `output_dir` from the validation log to preview structures in-browser.")
-        viz_output_dir = gr.Textbox(label="BioEmu output_dir", placeholder="/mnt/data/bioemu_runs/bioemu_...", lines=1)
+        gr.Markdown(
+            "## BioEmu 可视化（Web）\n"
+            "将验证日志中的 `output_dir` 粘贴到下方输入框，即可在浏览器内预览结构集合并播放。"
+        )
+        viz_output_dir = gr.Textbox(label="BioEmu 输出目录（output_dir）", placeholder="/mnt/data/bioemu_runs/bioemu_...", lines=1)
         with gr.Row():
-            viz_max_frames = gr.Slider(label="Preview max frames", minimum=1, maximum=200, value=50, step=1)
-            viz_stride = gr.Slider(label="Frame stride", minimum=1, maximum=50, value=1, step=1)
-        viz_btn = gr.Button("Render web preview")
-        viz_log = gr.Textbox(label="Visualization log", lines=6)
-        viz_view = gr.HTML(label="3D preview")
-        viz_files = gr.Files(label="Download files")
+            viz_max_frames = gr.Slider(label="预览最大帧数（max frames）", minimum=1, maximum=200, value=50, step=1)
+            viz_stride = gr.Slider(label="帧步长（stride）", minimum=1, maximum=50, value=1, step=1)
+        viz_btn = gr.Button("渲染 Web 预览")
+        viz_log = gr.Textbox(label="可视化日志", lines=6)
+        viz_view = gr.HTML(label="3D 预览")
+        viz_files = gr.Files(label="下载文件")
 
         bos_btn.click(
             fn=get_bos_token_info,
@@ -629,11 +668,12 @@ def main() -> None:
 
     # Allow downloading files from the BioEmu output directory.
     output_base_dir = os.environ.get("BIOEMU_OUTPUT_BASE_DIR", "/tmp/bioemu_runs")
+    images_dir = str(Path(__file__).resolve().parent / "images")
     demo.launch(
         server_name=args.host,
         server_port=args.port,
         head=_BIOEMU_HEAD,
-        allowed_paths=[output_base_dir, "/tmp"],
+        allowed_paths=[output_base_dir, "/tmp", images_dir],
     )
 
 

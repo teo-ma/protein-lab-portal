@@ -1,8 +1,33 @@
-# Protein-AI-Workflow
+# 蛋白质链实验室
 
 这是一个面向生命科学（蛋白序列生成 + 结构采样/验证 + 网页可视化）的 Web demo，已部署在 **Azure Container Apps（Sweden Central, Serverless GPU T4）**，可以直接访问体验：
 
 - Demo URL：https://proteinai-demo.gentlerock-f1c49807.swedencentral.azurecontainerapps.io
+
+## 方案概述：Dayhoff + BioEmu 闭环蛋白设计与验证
+
+Dayhoff 与 BioEmu 的组合方案旨在构建一个闭环的蛋白质设计与验证工作流：把“生成（设计）”与“评估（虚拟验证）”整合在同一循环中，从而更快收敛到高潜力候选，缩短药物研发与蛋白工程的迭代周期。
+
+### 1) 两个模型的角色定位
+
+- Dayhoff（设计引擎）：负责生成大量候选蛋白序列，擅长探索序列空间并提出多样化设计假设。
+- BioEmu（物理/结构模拟器）：负责对序列进行三维结构集合（ensemble）采样与稳定性相关分析，用于快速筛选更可能稳定、且具备目标功能构象的候选。
+
+### 2) 闭环工作流的运行逻辑
+
+1. 序列生成：Dayhoff 根据设计目标（如结合特定配体、提高催化效率等）生成一批候选序列。
+2. 结构与稳定性评估：BioEmu 对候选序列进行结构采样与热力学相关信号的评估，筛选更有希望稳定且具备功能构象的候选。
+3. 反馈优化：将 BioEmu 的评估结果（如稳定性评分、潜在口袋位置等）反馈给 Dayhoff，用于调整提示/约束与生成策略，迭代得到更优序列。
+4. 实验验证：仅将闭环筛选出的高潜力候选送入湿实验，降低实验筛选次数与成本。
+
+该模式实现“设计 → 虚拟验证 → 再设计”的自动化循环，通常可显著缩短从序列设计到功能验证前筛选的时间，并降低计算与实验开销（具体收益取决于任务与算力配置）。
+
+### 3) 方案优势
+
+- 效率：相比分子动力学（MD）等传统模拟路径，生成式采样在单 GPU 上即可实现更高通量的结构集合生成与筛选。
+- 精度：在部分场景中，预测结果可为实验提供有价值的先验（实际精度与体系、输入与参数设置有关）。
+- 可扩展性：可在 Azure（例如 Azure Container Apps / Azure AI Foundry 等）上部署，结合企业级算力做更大规模并行设计与评估。
+- 应用场景：蛋白质工程、药物发现、抗体优化、合成生物学等。
 
 ### Demo 场景
 
@@ -17,9 +42,17 @@
 
 ### 演示截图
 
-![Demo screenshot 1](images/demo-screen1.png)
-![Demo screenshot 2](images/demo-screen2.png)
-![Demo screenshot 3](images/demo-screen3.png)
+1) 蛋白质序列生成（Dayhoff）：基于设计目标/提示词，批量生成候选氨基酸序列，用于后续结构与可稳定性筛选。
+
+![蛋白质序列生成（Dayhoff）](images/demo-screen1.png)
+
+2) 序列验证与结构采样（BioEmu）：对候选序列进行结构集合（ensemble）采样与稳定性相关信号评估，输出 `topology.pdb` / `samples.xtc` 等可复用工件。
+
+![序列验证与结构采样（BioEmu）](images/demo-screen2.png)
+
+3) 结构可视化与轨迹播放（3Dmol.js）：在浏览器端加载多构象结构集合，支持 frame/stride 控制与播放，用于直观观察构象差异与动态变化。
+
+![结构可视化与轨迹播放（3Dmol.js）](images/demo-screen3.png)
 
 ---
 
@@ -54,7 +87,7 @@ az acr create -g rg-proteinai-aca -n <ACR_NAME_UNIQUE> --sku Standard
 az acr build -g rg-proteinai-aca -r <ACR_NAME_UNIQUE> \
 	-t proteinai-demo:latest \
 	-f dayhoff_demo/Dockerfile \
-	dayhoff_demo
+	.
 ```
 
 镜像地址形如：`<ACR_NAME_UNIQUE>.azurecr.io/proteinai-demo:latest`

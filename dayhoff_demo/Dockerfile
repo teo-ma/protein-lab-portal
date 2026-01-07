@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -14,12 +14,15 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
+COPY dayhoff_demo/requirements.txt /app/requirements.txt
 RUN python -m pip install --no-cache-dir -U pip \
     && python -m pip install --no-cache-dir -r /app/requirements.txt \
     && (python -m pip uninstall -y torchvision || true)
 
-COPY . /app
+COPY dayhoff_demo /app/dayhoff_demo
+COPY images /app/images
+
+WORKDIR /app/dayhoff_demo
 
 EXPOSE 7860
 
