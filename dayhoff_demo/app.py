@@ -548,7 +548,7 @@ def build_ui(default_model: str) -> gr.Blocks:
                 return path
         return None
 
-    with gr.Blocks(title="蛋白质链实验室") as demo:
+    with gr.Blocks(title="Dayhoff + BioEmu蛋白质链实验室") as demo:
         banner_path = _first_existing_path(banner_candidates)
         if banner_path is not None:
             banner_uri = _png_data_uri(banner_path)
@@ -558,7 +558,7 @@ def build_ui(default_model: str) -> gr.Blocks:
                 )
 
         gr.Markdown(
-            "<h1 style=\"text-align:center; margin: 0.2rem 0 0.8rem 0;\">蛋白质链实验室</h1>\n"
+            "<h1 style=\"text-align:center; margin: 0.2rem 0 0.8rem 0;\">Dayhoff + BioEmu蛋白质链实验室</h1>\n"
             "Dayhoff + BioEmu 组合用于构建闭环的蛋白质设计与验证工作流："
             "**生成序列 → 结构采样/验证 → 可视化预览**。\n\n"
             "- Dayhoff：快速探索序列空间，生成候选蛋白序列\n"

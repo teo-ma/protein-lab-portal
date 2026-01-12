@@ -1,4 +1,4 @@
-# 蛋白质链实验室
+# Dayhoff + BioEmu蛋白质链实验室
 
 这是一个面向生命科学（蛋白序列生成 + 结构采样/验证 + 网页可视化）的 Web demo，已部署在 **Azure Container Apps（Sweden Central, Serverless GPU T4）**，可以直接访问体验：
 
