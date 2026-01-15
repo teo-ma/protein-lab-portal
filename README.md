@@ -1,9 +1,10 @@
 # Dayhoff + BioEmu蛋白质链实验室
 
-这是一个面向生命科学（蛋白序列生成 + 结构采样/验证 + 网页可视化）的 Web demo，已部署在 **Azure Container Apps（Sweden Central, Serverless GPU T4）**，可以直接访问体验：
-
+这是一个面向生命科学（蛋白序列生成 + 结构采样/验证 + 网页可视化）的 Web demo，可以部署在 **Azure Container Apps（Sweden Central, Serverless GPU T4）**
+<!--
+可以直接访问体验：
 - Demo URL：https://proteinai-demo.gentlerock-f1c49807.swedencentral.azurecontainerapps.io
-
+-->
 ## 方案概述：Dayhoff + BioEmu 闭环蛋白设计与验证
 
 Dayhoff 与 BioEmu 的组合方案旨在构建一个闭环的蛋白质设计与验证工作流：把“生成（设计）”与“评估（虚拟验证）”整合在同一循环中，从而更快收敛到高潜力候选，缩短药物研发与蛋白工程的迭代周期。
